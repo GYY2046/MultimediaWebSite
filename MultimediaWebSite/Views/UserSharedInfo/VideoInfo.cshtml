@@ -1,0 +1,6 @@
+﻿@model string 
+<td class="playVideoTD">
+    @{Html.BeginForm("VideoInfo", "UserSharedInfo", new { id = Model }, FormMethod.Post);}
+        <input type="submit" value="" class="playVideoIcon" />
+    @{Html.EndForm();}
+</td>
