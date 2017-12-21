@@ -1,6 +1,19 @@
-﻿@model string 
-<td class="playVideoTD">
-    @{Html.BeginForm("VideoInfo", "UserSharedInfo", new { id = Model }, FormMethod.Post);}
-        <input type="submit" value="" class="playVideoIcon" />
-    @{Html.EndForm();}
-</td>
+﻿@model IEnumerable<MultimediaWebSite.Models.FileTableInfo>
+
+<div class="jumbotron">
+    @foreach (var info in Model)
+    {
+        <div class="row">
+            <div class="col-md-4">
+                <span>@info.FileName</span>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <video width="480" height="400" controls>
+                    <source src="@Url.Action("PlayVideoSync", "UserSharedInfo", new { Id = info.Id} )" />
+                </video>
+            </div>
+        </div>
+    }
+</div>

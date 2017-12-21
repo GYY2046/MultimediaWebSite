@@ -9,7 +9,7 @@ namespace MultimediaWebSite.Models
 {
     public class FileTableInfo
     {
-        public Guid StreamID { get; set; }
+        public int Id { get; set; }
         public string FileName { get; set; }
         public string FileType { get; set; }
         public Int64 FileSize { get; set; }
@@ -18,92 +18,72 @@ namespace MultimediaWebSite.Models
         public string VideoStart { get; set; }
         public string VideoEnd { get; set; }
         public string Note { get; set; }
-
+        public string FilePath { get; set; }
+        //public MemoryStream FileStream { get; set; }
+        
         public FileTableInfo()
         {
         }
-        /// <summary> 
-        /// Construtor 
-        /// </summary> 
-        /// <param name="_trainId"></param> 
-        /// <param name="_health"></param> 
-        /// <param name="_hb_count"></param> 
-        public FileTableInfo(Guid streamId, string fileName, string fileType, Int64 fileSize, int carId, int subInstId,
-            string videoStart, string videoEnd, string note)
-        {
-            this.StreamID = streamId;
-            this.FileName = fileName;
-            this.FileType = fileType;
-            this.FileSize = fileSize;
-            this.CarId = carId;
-            this.SubInstId = subInstId;
-            this.VideoStart = videoStart;
-            this.VideoEnd = videoEnd;
-            this.Note = note;
-        }
-
-
-        /// <summary> 
-        /// Constructor 
-        /// </summary> 
-        /// <param name="train_id"></param> 
         public List<FileTableInfo> GetListofFileInfo()   //StoredVideoFiles 
         {
-            List<FileTableInfo> listFileInfo = new List<FileTableInfo>();
-            //1.获取文件夹下所有的文件
+            List<FileTableInfo> listFileInfo = new List<FileTableInfo>();            
             var path = @"C:\Users\Boco_PC\source\repos\MultimediaWebSite\MultimediaWebSite\Files\Videos";
             var files = Directory.GetFiles(path);
+            int index = 0;
             foreach (var file in files)
-            {
-                FileTableInfo fileInfo = new FileTableInfo();
-                var mimeType = MimeMapping.GetMimeMapping(file);
-                FileInfo info = new FileInfo(file);
-                fileInfo.FileName = info.Name;
-                
-            }
-            //AbstractFactory df = new SQLFactory("DBName");
-            //DatabaseRequest req = new DatabaseRequest();
-            //req.CommandType = System.Data.CommandType.Text;
-            //req.Command = "SELECT video_id, video_name, content_type, size, car_id, subsystem_instance_id, video_start, video_end, note FROM video ";
-            //// req.Parameters.Add(new DatabaseRequest.Parameter("@dirName", dirName, SqlDbType.NVarChar)); 
-
-            //IDataReader reader = df.ExecuteDataReader(req);
-
-            //while (reader.Read())
-            //{
-            //    Guid id = reader.GetGuid(0);
-            //    string name = reader.GetString(1);
-            //    string startDate = reader.GetDateTime(6).ToString("yyyy-MM-dd hh:mm", CultureInfo.CreateSpecificCulture("en-US"));
-            //    string endDate = reader.GetDateTime(7).ToString("yyyy-MM-dd hh:mm", CultureInfo.CreateSpecificCulture("en-US"));
-            //    FileTableInfo fInfo = new FileTableInfo(id, name, reader.GetString(2), reader.GetInt64(3),
-            //        reader.GetInt32(4), reader.GetInt32(5), startDate, endDate, reader.GetString(8));
-            //    listFileInfo.Add(fInfo);
-            //}
-            //reader.Close();
+            {                
+                var info = GetFileInfo(file);
+                info.Id = index++;
+                listFileInfo.Add(info);
+            }            
             return listFileInfo;
         }
-
-        // Get a file from the database by ID 
-        /// <summary> 
-        ///  
-        /// </summary> 
-        /// <param name="id"></param> 
-        /// <returns></returns> 
+        public FileTableInfo GetFileInfo(string filePath)
+        {
+            FileTableInfo fileInfo = new FileTableInfo();
+            var mimeType = MimeMapping.GetMimeMapping(filePath);
+            FileInfo info = new FileInfo(filePath);
+            fileInfo.FileName = info.Name;
+            fileInfo.FileSize = info.Length;
+            fileInfo.FilePath = filePath;
+            fileInfo.FileType = mimeType;
+            return fileInfo;
+        }
+        public FileTableInfo PlayFile(List<FileTableInfo> list,int id)
+        {
+            return list.Where(m => m.Id == id).FirstOrDefault();
+        }
+        public byte[] GetFileByte(string filePath)
+        {
+            FileInfo info = new FileInfo(filePath);
+            byte[] dataByte = null;
+            using (var stream = info.OpenRead())
+            {
+                dataByte = new byte[stream.Length];
+                stream.Read(dataByte, 0, (int)stream.Length);
+            }
+            return dataByte;
+        }
+        public byte[] GetFileBlock(string filePath, long start, long length)
+        {
+            FileInfo info = new FileInfo(filePath);
+            byte[] dataByte = new byte[length]; 
+            
+            using (var stream = info.OpenRead())
+            {
+                int count = 0;
+                if (length + start > stream.Length)
+                    count = (int)(stream.Length - start);
+                else
+                    count = (int)length;
+                stream.Seek(start, SeekOrigin.Begin);
+                stream.Read(dataByte, 0, count);
+            }
+            return dataByte;
+        }
         public DataTable GetAFileFromFileTable(Guid id)
         {
             DataTable file = new DataTable();
-
-            //AbstractFactory df = new SQLFactory("DBName");
-            //DatabaseRequest req = new DatabaseRequest();
-            //req.CommandType = System.Data.CommandType.Text;
-            //req.Command = "SELECT video_name, content_type, data from video where  video_id=@ID";
-            //req.Parameters.Add(new DatabaseRequest.Parameter("@Id", id, SqlDbType.UniqueIdentifier));
-            //IDataReader reader = df.ExecuteDataReader(req);
-            //while (!reader.IsClosed)
-            //{
-            //    file.Load(reader);
-            //}
-            //reader.Close();
             return file;
         }
     }
